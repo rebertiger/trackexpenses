@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:toast/toast.dart';
 import 'package:trackexpenses/widgets/chart/chart.dart';
 import 'package:trackexpenses/widgets/expenses_list/expenses_list.dart';
 import 'package:trackexpenses/models/expense.dart';
@@ -54,11 +53,13 @@ class _ExpensesState extends State<Expenses> {
       registeredExpenses.remove(expense);
       var removeExpenseSnackbar = SnackBar(
         content: const Text('Your expense was successfully deleted.'),
-        action: SnackBarAction(label: 'Undo', onPressed: () {
-          setState(() {
-            registeredExpenses.insert(expenseIndex, expense);
-          });
-        }),
+        action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              setState(() {
+                registeredExpenses.insert(expenseIndex, expense);
+              });
+            }),
       );
       ScaffoldMessenger.of(context).showSnackBar(removeExpenseSnackbar);
       /*ToastContext().init(context);
@@ -71,6 +72,8 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(BuildContext context) {
+    var deviceHeight = MediaQuery.of(context).size.height;
+    var deviceWidth = MediaQuery.of(context).size.width;
     Widget mainContent = const Center(
       child: Text("No expenses found, start adding some!"),
     );
@@ -97,12 +100,21 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Chart(expenses: registeredExpenses),
-          Expanded(child: mainContent),
-        ],
-      ),
+      body: deviceWidth < 600
+          ? Column(
+              children: [
+                Chart(expenses: registeredExpenses),
+                Expanded(child: mainContent),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Chart(expenses: registeredExpenses),
+                ),
+                Expanded(child: mainContent),
+              ],
+            ),
     );
   }
 }
