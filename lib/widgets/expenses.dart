@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
+import 'package:trackexpenses/widgets/chart/chart.dart';
 import 'package:trackexpenses/widgets/expenses_list/expenses_list.dart';
 import 'package:trackexpenses/models/expense.dart';
 import 'package:trackexpenses/widgets/new_expense.dart';
@@ -98,9 +99,8 @@ class _ExpensesState extends State<Expenses> {
       ),
       body: Column(
         children: [
-          
-          Expanded(
-              child: mainContent),
+          Chart(expenses: registeredExpenses),
+          Expanded(child: mainContent),
         ],
       ),
     );
