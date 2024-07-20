@@ -41,7 +41,7 @@ class _NewExpenseState extends State<NewExpense> {
               ));
       return;
     }
-    
+
     widget.onAddExpense(
       Expense(
           title: _titleController.text,
@@ -49,8 +49,16 @@ class _NewExpenseState extends State<NewExpense> {
           date: _selectedDate!,
           category: _selectedCategory),
     );
-    ToastContext().init(context);
-    Toast.show("Your expense is successfully added.",duration: Toast.lengthLong,);
+    var expenseAddSnackBar = const SnackBar(
+      content: Text('Your expense is successfully added.'),
+      duration: Duration(seconds: 2),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(expenseAddSnackBar);
+    /*ToastContext().init(context);
+    Toast.show(
+      "Your expense is successfully added.",
+      duration: Toast.lengthLong,
+    );*/
     Navigator.pop(context);
   }
 
@@ -127,32 +135,33 @@ class _NewExpenseState extends State<NewExpense> {
               height: 16,
             ),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 DropdownButton(
-                    icon: const Icon(Icons.task_rounded),
-                    enableFeedback: true,
-                    value: _selectedCategory,
-                    items: Category.values
-                        .map(
-                          (category) => DropdownMenuItem(
-                              value: category,
-                              child: Text(
-                                category.name.toUpperCase(),
-                              )),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == null) {
-                          return;
-                        } else {
-                          _selectedCategory = value;
-                        }
-                      });
-                    }),
-                const Spacer(),
+                  iconSize: 20,
+                  icon: const Icon(Icons.task_rounded),
+                  enableFeedback: true,
+                  value: _selectedCategory,
+                  items: Category.values
+                      .map(
+                        (category) => DropdownMenuItem(
+                            value: category,
+                            child: Text(
+                              category.name.toUpperCase(),
+                            )),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == null) {
+                        return;
+                      } else {
+                        _selectedCategory = value;
+                      }
+                    });
+                  },
+                ),
                 ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
@@ -161,7 +170,6 @@ class _NewExpenseState extends State<NewExpense> {
                 ElevatedButton(
                     onPressed: () {
                       _submitExpenseData();
-                      
                     },
                     child: const Text("Save expense")),
               ],
