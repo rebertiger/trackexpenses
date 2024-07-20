@@ -28,7 +28,7 @@ class _ExpensesState extends State<Expenses> {
         title: "Holiday travel price",
         amount: 50,
         date: DateTime.now(),
-        category: Category.travel),
+        category: Category.transportation),
   ];
 
   void _openAddExpenseOverlay() {
@@ -60,14 +60,15 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(BuildContext context) {
-    Widget mainContent = const Center(child: Text("No expenses found, start adding some!"),);
-    if (registeredExpenses.isNotEmpty){
+    Widget mainContent = const Center(
+      child: Text("No expenses found, start adding some!"),
+    );
+    if (registeredExpenses.isNotEmpty) {
       mainContent = ExpensesList(
-            expenses: registeredExpenses,
-            onRemoveExpense: _removeExpense,
-          );
+        expenses: registeredExpenses,
+        onRemoveExpense: _removeExpense,
+      );
     }
-
 
     return Scaffold(
       appBar: AppBar(
