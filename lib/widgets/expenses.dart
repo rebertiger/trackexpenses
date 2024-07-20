@@ -48,13 +48,23 @@ class _ExpensesState extends State<Expenses> {
   }
 
   void _removeExpense(Expense expense) {
+    final expenseIndex = registeredExpenses.indexOf(expense);
     setState(() {
       registeredExpenses.remove(expense);
-      ToastContext().init(context);
+      var removeExpenseSnackbar = SnackBar(
+        content: const Text('Your expense was successfully deleted.'),
+        action: SnackBarAction(label: 'Undo', onPressed: () {
+          setState(() {
+            registeredExpenses.insert(expenseIndex, expense);
+          });
+        }),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(removeExpenseSnackbar);
+      /*ToastContext().init(context);
       Toast.show(
         "Expense was successfully removed.",
         duration: Toast.lengthShort,
-      );
+      );*/
     });
   }
 
@@ -72,8 +82,11 @@ class _ExpensesState extends State<Expenses> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue,
-        title: const Text("TrackExpenses"),
+        backgroundColor: const Color.fromARGB(255, 212, 123, 227),
+        title: const Text(
+          "TrackExpenses",
+          style: TextStyle(),
+        ),
         actions: [
           IconButton(
             onPressed: _openAddExpenseOverlay,
