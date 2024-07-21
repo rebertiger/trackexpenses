@@ -1,0 +1,6 @@
+--add pie chart
+--add chart
+--add more categories
+--add expense limit.
+--add reminder to add expenses that user spend in that day
+--add dark mode
