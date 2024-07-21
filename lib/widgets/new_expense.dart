@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trackexpenses/models/expense.dart';
 
+// TODO(all): add new google fonts to texts..
 class NewExpense extends StatefulWidget {
   const NewExpense({super.key, required this.onAddExpense});
 
@@ -18,12 +22,23 @@ class _NewExpenseState extends State<NewExpense> {
   DateTime? _selectedDate;
   Category _selectedCategory = Category.leisure;
 
-  void _submitExpenseData() {
-    final enteredAmount = double.tryParse(_amountController.text);
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
-    if (_titleController.text.trim().isEmpty ||
-        amountIsInvalid ||
-        _selectedDate == null) {
+  void _showDialog() {
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+                title: const Text("Invalid input"),
+                content:
+                    const Text("Please make sure a valid values was entered."),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Continue'))
+                ],
+              ));
+    } else {
       showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -38,6 +53,16 @@ class _NewExpenseState extends State<NewExpense> {
                       child: const Text('Continue'))
                 ],
               ));
+    }
+  }
+
+  void _submitExpenseData() {
+    final enteredAmount = double.tryParse(_amountController.text);
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
+      _showDialog;
       return;
     }
 
@@ -83,29 +108,55 @@ class _NewExpenseState extends State<NewExpense> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 50, 16, 16),
-        child: Column(
-          children: [
-            TextField(
-              maxLength: 50,
-              keyboardType: TextInputType.text,
-              controller: _titleController,
-              decoration: const InputDecoration(
-                label: Text("Expense"),
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    maxLength: 9,
-                    keyboardType: TextInputType.number,
-                    controller: _amountController,
-                    decoration: const InputDecoration(
-                      prefixText: '\$',
-                      label: Text("Amount you spent"),
+    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+    return LayoutBuilder(builder: (ctx, constraints) {
+      final width = constraints.maxWidth;
+      return Scaffold(
+        body: SizedBox(
+          height: double.infinity,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 50, 16, keyboardSpace + 16),
+              child: Column(
+                children: [
+                  if (width >= 600)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            maxLength: 50,
+                            keyboardType: TextInputType.text,
+                            controller: _titleController,
+                            decoration: const InputDecoration(
+                              label: Text("Expense"),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 24,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            maxLength: 9,
+                            keyboardType: TextInputType.number,
+                            controller: _amountController,
+                            decoration: const InputDecoration(
+                              prefixText: '\$',
+                              label: Text("Amount you spent"),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    TextField(
+                      maxLength: 50,
+                      keyboardType: TextInputType.text,
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        label: Text("Expense"),
+                      ),
                     ),
                   if (width >= 600)
                     Row(
@@ -155,100 +206,102 @@ class _NewExpenseState extends State<NewExpense> {
                         )),
                       ],
                     )
-                    else
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          maxLength: 9,
-                          keyboardType: TextInputType.number,
-                          controller: _amountController,
-                          decoration: const InputDecoration(
-                            prefixText: '\$',
-                            label: Text("Amount you spent"),
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            maxLength: 9,
+                            keyboardType: TextInputType.number,
+                            controller: _amountController,
+                            decoration: const InputDecoration(
+                              prefixText: '\$',
+                              label: Text("Amount you spent"),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                          child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            _selectedDate == null
-                                ? "Date not selected"
-                                : formatter.format(_selectedDate!),
-                          ),
-                          IconButton(
-                            onPressed: _presentDatePicker,
-                            icon: const Icon(Icons.calendar_month_rounded),
-                          ),
-                        ],
-                      )),
-                    ],
-                  ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        Expanded(
+                            child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              _selectedDate == null
+                                  ? "Date not selected"
+                                  : formatter.format(_selectedDate!),
+                            ),
+                            IconButton(
+                              onPressed: _presentDatePicker,
+                              icon: const Icon(Icons.calendar_month_rounded),
+                            ),
+                          ],
+                        )),
+                      ],
+                    ),
                   const SizedBox(
                     height: 16,
                   ),
-                  if(width>=600) 
+                  if (width >= 600)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: [ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
+                      children: [
+                        ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Close")),
+                        ElevatedButton(
+                            onPressed: () {
+                              _submitExpenseData();
+                            },
+                            child: const Text("Save expense")),
+                      ],
+                    )
+                  else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        DropdownButton(
+                          iconSize: 20,
+                          icon: const Icon(Icons.task_rounded),
+                          enableFeedback: true,
+                          value: _selectedCategory,
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                    value: category,
+                                    child: Text(
+                                      category.name.toUpperCase(),
+                                    )),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value == null) {
+                                return;
+                              } else {
+                                _selectedCategory = value;
+                              }
+                            });
                           },
-                          child: const Text("Close")),
-                      ElevatedButton(
-                          onPressed: () {
-                            _submitExpenseData();
-                          },
-                          child: const Text("Save expense")),],)
-
-                  else 
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      DropdownButton(
-                        iconSize: 20,
-                        icon: const Icon(Icons.task_rounded),
-                        enableFeedback: true,
-                        value: _selectedCategory,
-                        items: Category.values
-                            .map(
-                              (category) => DropdownMenuItem(
-                                  value: category,
-                                  child: Text(
-                                    category.name.toUpperCase(),
-                                  )),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            if (value == null) {
-                              return;
-                            } else {
-                              _selectedCategory = value;
-                            }
-                          });
-                        },
-                      ),
-                      ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text("Close")),
-                      ElevatedButton(
-                          onPressed: () {
-                            _submitExpenseData();
-                          },
-                          child: const Text("Save expense")),
-                    ],
-                  ),
+                        ),
+                        ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Close")),
+                        ElevatedButton(
+                            onPressed: () {
+                              _submitExpenseData();
+                            },
+                            child: const Text("Save expense")),
+                      ],
+                    ),
                 ],
               ),
             ),
