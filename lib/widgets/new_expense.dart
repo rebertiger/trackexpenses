@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trackexpenses/models/expense.dart';
+import 'package:trackexpenses/widgets/category_selector_dropdown_button.dart';
+import 'package:trackexpenses/widgets/title_input_text_field.dart';
+import 'package:trackexpenses/widgets/amount_input_text_field.dart';
 
-// TODO(all): add new google fonts to texts..
 class NewExpense extends StatefulWidget {
   const NewExpense({super.key, required this.onAddExpense});
 
@@ -25,34 +27,36 @@ class _NewExpenseState extends State<NewExpense> {
   void _showDialog() {
     if (Platform.isIOS) {
       showCupertinoDialog(
-          context: context,
-          builder: (ctx) => CupertinoAlertDialog(
-                title: const Text("Invalid input"),
-                content:
-                    const Text("Please make sure a valid values was entered."),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text('Continue'))
-                ],
-              ));
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text("Invalid input"),
+          content: const Text("Please make sure valid values were entered."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
     } else {
       showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-                title: const Text("Invalid input"),
-                content:
-                    const Text("Please make sure a valid values was entered."),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text('Continue'))
-                ],
-              ));
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text("Invalid input"),
+          content: const Text("Please make sure valid values were entered."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -62,27 +66,23 @@ class _NewExpenseState extends State<NewExpense> {
     if (_titleController.text.trim().isEmpty ||
         amountIsInvalid ||
         _selectedDate == null) {
-      _showDialog;
+      _showDialog();
       return;
     }
 
     widget.onAddExpense(
       Expense(
-          title: _titleController.text,
-          amount: enteredAmount,
-          date: _selectedDate!,
-          category: _selectedCategory),
+        title: _titleController.text,
+        amount: enteredAmount,
+        date: _selectedDate!,
+        category: _selectedCategory,
+      ),
     );
     var expenseAddSnackBar = const SnackBar(
       content: Text('Your expense is successfully added.'),
       duration: Duration(seconds: 2),
     );
     ScaffoldMessenger.of(context).showSnackBar(expenseAddSnackBar);
-    /*ToastContext().init(context);
-    Toast.show(
-      "Your expense is successfully added.",
-      duration: Toast.lengthLong,
-    );*/
     Navigator.pop(context);
   }
 
@@ -90,10 +90,11 @@ class _NewExpenseState extends State<NewExpense> {
     final now = DateTime.now();
     final firstDate = DateTime(now.year - 1, now.month, now.day);
     final pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: firstDate,
-        lastDate: DateTime.now());
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: firstDate,
+      lastDate: DateTime.now(),
+    );
     setState(() {
       _selectedDate = pickedDate;
     });
@@ -124,141 +125,95 @@ class _NewExpenseState extends State<NewExpense> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: TextField(
-                            maxLength: 50,
-                            keyboardType: TextInputType.text,
+                          child: Titleinputtextfield(
                             controller: _titleController,
-                            decoration: const InputDecoration(
-                              label: Text("Expense"),
-                            ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 24,
-                        ),
+                        const SizedBox(width: 24),
                         Expanded(
-                          child: TextField(
-                            maxLength: 9,
-                            keyboardType: TextInputType.number,
+                          child: Amountinputtextfield(
                             controller: _amountController,
-                            decoration: const InputDecoration(
-                              prefixText: '\$',
-                              label: Text("Amount you spent"),
-                            ),
                           ),
                         ),
                       ],
                     )
                   else
-                    TextField(
-                      maxLength: 50,
-                      keyboardType: TextInputType.text,
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        label: Text("Expense"),
-                      ),
-                    ),
+                    Titleinputtextfield(controller: _titleController),
                   if (width >= 600)
                     Row(
                       children: [
-                        DropdownButton(
-                          iconSize: 20,
-                          icon: const Icon(Icons.task_rounded),
-                          enableFeedback: true,
-                          value: _selectedCategory,
-                          items: Category.values
-                              .map(
-                                (category) => DropdownMenuItem(
-                                    value: category,
-                                    child: Text(
-                                      category.name.toUpperCase(),
-                                    )),
-                              )
-                              .toList(),
-                          onChanged: (value) {
+                        CategorySelectorDropdownButton(
+                          selectedCategory: _selectedCategory,
+                          onCategoryChanged: (category) {
                             setState(() {
-                              if (value == null) {
-                                return;
-                              } else {
-                                _selectedCategory = value;
-                              }
+                              _selectedCategory = category;
                             });
                           },
                         ),
-                        const SizedBox(
-                          width: 24,
-                        ),
+                        const SizedBox(width: 24),
                         Expanded(
-                            child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              _selectedDate == null
-                                  ? "Date not selected"
-                                  : formatter.format(_selectedDate!),
-                            ),
-                            IconButton(
-                              onPressed: _presentDatePicker,
-                              icon: const Icon(Icons.calendar_month_rounded),
-                            ),
-                          ],
-                        )),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                _selectedDate == null
+                                    ? "Date not selected"
+                                    : formatter.format(_selectedDate!),
+                              ),
+                              IconButton(
+                                onPressed: _presentDatePicker,
+                                icon: const Icon(Icons.calendar_month_rounded),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     )
                   else
                     Row(
                       children: [
                         Expanded(
-                          child: TextField(
-                            maxLength: 9,
-                            keyboardType: TextInputType.number,
+                          child: Amountinputtextfield(
                             controller: _amountController,
-                            decoration: const InputDecoration(
-                              prefixText: '\$',
-                              label: Text("Amount you spent"),
-                            ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 16,
-                        ),
+                        const SizedBox(width: 16),
                         Expanded(
-                            child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              _selectedDate == null
-                                  ? "Date not selected"
-                                  : formatter.format(_selectedDate!),
-                            ),
-                            IconButton(
-                              onPressed: _presentDatePicker,
-                              icon: const Icon(Icons.calendar_month_rounded),
-                            ),
-                          ],
-                        )),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _selectedDate == null
+                                    ? "Date not selected"
+                                    : formatter.format(_selectedDate!),
+                              ),
+                              IconButton(
+                                onPressed: _presentDatePicker,
+                                icon: const Icon(Icons.calendar_month_rounded),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: 16),
                   if (width >= 600)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Close")),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Close"),
+                        ),
                         ElevatedButton(
-                            onPressed: () {
-                              _submitExpenseData();
-                            },
-                            child: const Text("Save expense")),
+                          onPressed: _submitExpenseData,
+                          child: const Text("Save expense"),
+                        ),
                       ],
                     )
                   else
@@ -266,40 +221,24 @@ class _NewExpenseState extends State<NewExpense> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        DropdownButton(
-                          iconSize: 20,
-                          icon: const Icon(Icons.task_rounded),
-                          enableFeedback: true,
-                          value: _selectedCategory,
-                          items: Category.values
-                              .map(
-                                (category) => DropdownMenuItem(
-                                    value: category,
-                                    child: Text(
-                                      category.name.toUpperCase(),
-                                    )),
-                              )
-                              .toList(),
-                          onChanged: (value) {
+                        CategorySelectorDropdownButton(
+                          selectedCategory: _selectedCategory,
+                          onCategoryChanged: (category) {
                             setState(() {
-                              if (value == null) {
-                                return;
-                              } else {
-                                _selectedCategory = value;
-                              }
+                              _selectedCategory = category;
                             });
                           },
                         ),
                         ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Close")),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Close"),
+                        ),
                         ElevatedButton(
-                            onPressed: () {
-                              _submitExpenseData();
-                            },
-                            child: const Text("Save expense")),
+                          onPressed: _submitExpenseData,
+                          child: const Text("Save expense"),
+                        ),
                       ],
                     ),
                 ],
