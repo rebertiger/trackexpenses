@@ -3,6 +3,7 @@ import 'package:trackexpenses/widgets/chart/chart.dart';
 import 'package:trackexpenses/widgets/expenses_list/expenses_list.dart';
 import 'package:trackexpenses/models/expense.dart';
 import 'package:trackexpenses/widgets/new_expense.dart';
+import 'package:trackexpenses/database_helper.dart';
 
 class Expenses extends StatefulWidget {
   const Expenses({super.key});
@@ -13,23 +14,20 @@ class Expenses extends StatefulWidget {
 }
 
 class _ExpensesState extends State<Expenses> {
-  final List<Expense> registeredExpenses = [
-    Expense(
-        title: "Flutter Course",
-        amount: 19.99,
-        date: DateTime.now(),
-        category: Category.work),
-    Expense(
-        title: "New Mouse",
-        amount: 40,
-        date: DateTime.now(),
-        category: Category.leisure),
-    Expense(
-        title: "Holiday travel price",
-        amount: 50,
-        date: DateTime.now(),
-        category: Category.transportation),
-  ];
+  List<Expense> _expenses = [];
+
+  void initState() {
+    super.initState();
+    _loadExpenses();
+  }
+
+  Future<void> _loadExpenses() async {
+    final db = DatabaseHelper();
+    final expenses = await db.getExpenses();
+    setState(() {
+      _expenses = expenses;
+    });
+  }
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
@@ -42,32 +40,28 @@ class _ExpensesState extends State<Expenses> {
     );
   }
 
-  void _addExpense(Expense expense) {
-    setState(() {
-      registeredExpenses.add(expense);
-    });
+  void _addExpense(Expense expense) async {
+    final db = DatabaseHelper();
+    await db.insertExpense(expense);
+    _loadExpenses();
   }
 
-  void _removeExpense(Expense expense) {
-    final expenseIndex = registeredExpenses.indexOf(expense);
+  void _removeExpense(Expense expense) async {
+    final expenseIndex = _expenses.indexOf(expense);
+    final db = DatabaseHelper();
+    await db.deleteExpense(expense.id);
     setState(() {
-      registeredExpenses.remove(expense);
       var removeExpenseSnackbar = SnackBar(
         content: const Text('Your expense was successfully deleted.'),
         action: SnackBarAction(
             label: 'Undo',
             onPressed: () {
               setState(() {
-                registeredExpenses.insert(expenseIndex, expense);
+                _expenses.insert(expenseIndex, expense);
               });
             }),
       );
       ScaffoldMessenger.of(context).showSnackBar(removeExpenseSnackbar);
-      /*ToastContext().init(context);
-      Toast.show(
-        "Expense was successfully removed.",
-        duration: Toast.lengthShort,
-      );*/
     });
   }
 
@@ -77,9 +71,9 @@ class _ExpensesState extends State<Expenses> {
     Widget mainContent = const Center(
       child: Text("No expenses found, start adding some!"),
     );
-    if (registeredExpenses.isNotEmpty) {
+    if (_expenses.isNotEmpty) {
       mainContent = ExpensesList(
-        expenses: registeredExpenses,
+        expenses: _expenses,
         onRemoveExpense: _removeExpense,
       );
     }
@@ -103,14 +97,14 @@ class _ExpensesState extends State<Expenses> {
       body: deviceWidth < 600
           ? Column(
               children: [
-                Chart(expenses: registeredExpenses),
+                Chart(expenses: _expenses),
                 Expanded(child: mainContent),
               ],
             )
           : Row(
               children: [
                 Expanded(
-                  child: Chart(expenses: registeredExpenses),
+                  child: Chart(expenses: _expenses),
                 ),
                 Expanded(child: mainContent),
               ],
