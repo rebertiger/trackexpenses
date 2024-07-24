@@ -51,18 +51,19 @@ class _ExpensesState extends State<Expenses> {
     final db = DatabaseHelper();
     await db.deleteExpense(expense.id);
     setState(() {
-      var removeExpenseSnackbar = SnackBar(
+        _expenses.remove(expense);
+      
+    });
+    var removeExpenseSnackbar = SnackBar(
         content: const Text('Your expense was successfully deleted.'),
         action: SnackBarAction(
             label: 'Undo',
-            onPressed: () {
-              setState(() {
-                _expenses.insert(expenseIndex, expense);
-              });
+            onPressed: () async {
+              await db.insertExpense(expense);
+              _loadExpenses();
             }),
       );
       ScaffoldMessenger.of(context).showSnackBar(removeExpenseSnackbar);
-    });
   }
 
   @override
